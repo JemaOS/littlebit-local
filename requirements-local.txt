@@ -1,0 +1,10 @@
+numpy==2.2.4
+transformers==4.51.3
+datasets==3.4.1
+accelerate>=1.6.0
+safetensors
+sentencepiece
+tqdm
+tensorboardX
+pytorch-optimizer>=3.5.0
+GPUtil>=1.4.0

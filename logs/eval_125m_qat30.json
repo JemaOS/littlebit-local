@@ -1,0 +1,15 @@
+{
+  "model_dir": "out/opt125m-0.3-qat",
+  "size_mb": 158.69,
+  "binarized": 72,
+  "packed_mb": 2.894,
+  "scales_mb": 0.864,
+  "device": "cpu",
+  "dtype": "bfloat16",
+  "ppl_wikitext2": 2289.154052734375,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " the the the the the the the the the the the the the the the the",
+    "tokens_per_s": 105.21
+  }
+}

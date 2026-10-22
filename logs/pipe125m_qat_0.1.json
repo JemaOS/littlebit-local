@@ -1,0 +1,10 @@
+{
+  "model_id": "models/opt-125m",
+  "eff_bit": 0.1,
+  "residual": true,
+  "max_steps": 5,
+  "lr": 0.0002,
+  "train_seconds": 70.71629691123962,
+  "train_samples": 4740,
+  "save_dir": "/home/john/r132/littlebit/out/pipe125m-0.1-qat"
+}

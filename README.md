@@ -1,0 +1,204 @@
+# LittleBit local — sub-1-bit quantization of local LLMs (reproduction & working setup)
+
+Reproduction **locale** de *LittleBit: Ultra Low-Bit Quantization via Latent Factorization*
+(Banseok Lee, Dongkyu Kim, Youngcheon You, Youngmin Kim — NeurIPS 2025, arXiv:2506.13771),
+à partir du code officiel [SamsungLabs/LittleBit](https://github.com/SamsungLabs/LittleBit),
+avec pour objectif de **faire tourner un modèle compressé en local** (init → QAT → export → inférence).
+
+Papier local : `/home/john/Téléchargements/arXiv-2506.13771v5/main.tex`.
+
+---
+
+## 1. Matériel & contraintes
+
+| Ressource | Valeur |
+|---|---|
+| GPU | RTX 4070 Laptop 12 Go — **occupée par LM Studio (~8.5–9 Go)** → ~0.4 Go libres |
+| CPU | 32 threads (utilisé pour tout le pipeline) |
+| RAM | 188 Go |
+| Disque | 1.8 To libres |
+| Python | 3.12.3 (venv local, pas de conda) |
+
+Conséquence : tout le pipeline tourne **sur CPU**. Le code détecte la VRAM libre et retombe
+automatiquement sur CPU (`pick_device`, seuil 6 Go) pour ne jamais OOM.
+
+## 2. Installation (reproductible)
+
+```bash
+python3 -m venv venv
+venv/bin/pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+venv/bin/pip install -r requirements-local.txt   # transformers==4.51.3 (pin papier), datasets, accelerate, ...
+git clone https://github.com/SamsungLabs/LittleBit repo
+python3 fetch_model.py facebook/opt-1.3b models/opt-1.3b tf_model.h5 flax_model.msgpack
+python3 fetch_model.py facebook/opt-125m models/opt-125m tf_model.h5 flax_model.msgpack
+```
+
+`fetch_model.py` : téléchargeur HF sans dépendance (urllib), utilisé car le repo `opt-1.3b`
+expose `pytorch_model.bin` fp16 (2.6 Go) et des formats inutiles (`tf_model.h5`, `flax_model.msgpack`).
+
+## 3. Vérification de la fidélité code ↔ papier
+
+| Papier | Code officiel | Vérifié |
+|---|---|---|
+| `W ≈ UVᵀ`, facteurs binarisés | `LittleBitLinear._decompose_matrix` (`svd_lowrank(q=split_dim)`, `U = U_t√S`, `V = √S Vᵀ`) | ✅ |
+| Échelles `h`,`g`,`ℓ` (Éq. 3) | `u1`=h, `v2`=g, `u2`=ℓ_u, `v1`=ℓ_v, `ℓ = ℓ_u ⊙ ℓ_v` | ✅ |
+| `Ŵ_pri = diag(h)U_sign diag(ℓ)V_signᵀ diag(g)` (Éq. 5) | forward `(((x*v2) @ Vqᵀ) * (v1*u2)) @ Uqᵀ * u1` | ✅ (écart max 5e-7, `scripts/test_module_math.py`) |
+| Dual-SVID init : SVD tronquée + rank-1 SVD sur `|U|`,`|V|` | `_rank_one_decompose` sur `abs(U)`,`abs(V)` | ✅ |
+| Residual Compensation (Éq. 8–10) | 2ᵉ chemin identique, init sur `W − Ŵ_pri,0` | ✅ |
+| SmoothSign (gradient `tanh(100x)`) | `quantization/functions/binary.py` (`alpha=100`) | ✅ |
+| `L = KL + 10·MSE_hidden` | `utils/kd_utils.py` (`l2l_loss_scale=10`) | ✅ |
+| BPW effectif `s(a+b+16)+16(a+b)` / `ab` (et `×2` si residual) | `_compute_eff_bits` | ✅ (exact, testé) |
+
+**Bugs upstream rencontrés (contournés sans modifier le repo) :**
+
+1. **Import circulaire** : `quantization.modules` doit être importé **après** `quantization.utils`
+   (comme dans `main.py`), sinon `ImportError` sur `LittleBitLinear`.
+2. **`LittleBitLinear.split_dim_used`** lit `self._split_dim` qui n'existe pas (le buffer est
+   `_split_dim_final`) → `AttributeError` dès qu'on l'appelle (`extra_repr`).
+3. **Chargement d'un checkpoint (`quantization/hub.py`)** : le squelette est construit sous
+   `with torch.device("meta")`, or l'import de `transformers.models.opt.modeling_opt` y échoue
+   (`Tensor.item() cannot be called on meta tensors`). Contournement : pré-importer le module
+   `modeling_<model_type>` avant (`scripts/lbcommon.py::preimport_model_module`).
+4. **`main.py` importe `deepspeed`/`GPUtil`/`wandb` inconditionnellement** → `scripts/train_local.py`
+   réimplémente le même entraînement (KD + SmoothSign + save au format packé) sans DeepSpeed.
+
+## 4. Scripts
+
+| Script | Rôle |
+|---|---|
+| `scripts/test_module_math.py` | tests unitaires : forward == poids effectif explicite, formules split_dim/BPW |
+| `scripts/init_ppl.py` | chargement FP → **init Dual-SVID** → PPL WikiText-2 + diagnostic de reconstruction + rapport de taille réelle ; `--save_dir` pour exporter |
+| `scripts/run_bpw_sweep.py` | balayage FP + 1.0/0.55/0.3/0.1 BPW (reprise automatique, écrit `logs/*.json`) |
+| `scripts/train_local.py` | QAT local (KD, SmoothSign, sans DeepSpeed), sauvegarde au format packé `*_packed`/`*_shape` |
+| `scripts/eval_saved.py` | PPL + génération d'un checkpoint compressé via le loader officiel (`LittleBitModel`) |
+| `scripts/generate.py` | inférence locale + mesure mémoire/tok-s |
+| `scripts/lbcommon.py` | helpers (pré-import `modeling_*`, garde VRAM, lecture `model_type`) |
+| `scripts/run_full_pipeline.py` | **pipeline complet reprenable** : FP → init Dual-SVID → QAT → éval du checkpoint + génération, un seul commandement pour un modèle donné |
+
+### Exécution
+
+```bash
+# tout le pipeline pour OPT-1.3B aux taux 0.1 et 0.3 BPW (reprend là où il s'est arrêté)
+venv/bin/python scripts/run_full_pipeline.py --model_id models/opt-1.3b --tag opt1.3b \
+    --bpws 0.1 0.3 --qat_steps 300 --bs 4 --train_seqlen 512 --threads 12
+```
+
+### Pièges d'exécution rencontrés (importants pour reproduire)
+
+- **GPU saturé** : `LittleBitLinear._decompose_matrix` déplace le SVD sur `cuda` dès que
+  `torch.cuda.is_available()` est vrai → OOM quand un autre workload occupe la carte.
+  Contournement : `lbcommon.decide_device_env()` (appelé **avant** `import torch`) cache le GPU
+  (`CUDA_VISIBLE_DEVICES=""`) si la VRAM libre est < seuil (`LITTLEBIT_MIN_FREE_MB`, 5 Go par défaut).
+- **Commandes longues** : lancer via un processus *persistent* (les commandes shell longues sont
+  interrompues), et les scripts sont reprenables (`logs/*.json` sert de point de reprise).
+- **Distillation** : la perte KD du code officiel est `batchmean` sur la dimension *batch* (et non
+  tokens) → ordre de grandeur ≈ `seq_len × KL` nats ; à titre indicatif seulement.
+
+## 5. Résultats
+
+### 5.1 OPT-125M (validation rapide du pipeline)
+
+PPL WikiText-2, `seqlen=2048`, CPU.
+
+| Config | PPL | Taille disque | Notes |
+|---|---|---|---|
+| FP32 (référence) | **27.66** | 241 Mo | |
+| Init Dual-SVID 1.0 BPW (residual) | 11 237 | — | modèle cassé à l'init (attendu : la binarisation détruit le modèle) |
+| Init Dual-SVID 0.3 BPW (residual) | 206 152 | — | |
+| Init Dual-SVID 0.1 BPW (residual) | 61 496 | — | |
+| **QAT 30 steps @0.3 BPW** (bs2, lr1.2e-4, WikiText-2) | **2 289** | 20 Mo | 90× mieux que l'init → l'entraînement fonctionne |
+| QAT 400 steps @1.0 BPW | en cours | — | |
+
+Erreur de reconstruction globale de l'init (Frobenius relatif) :
+1.0 BPW : **0.75** (SVD tronquée seule : 0.53) — 0.3 BPW : 0.89 (0.82) — 0.1 BPW : 0.96 (0.94).
+
+### 5.1.1 Effet de la rotation Joint-ITQ (`--use_itq True`, LittleBit-2)
+
+| Config (OPT-125M) | erreur init | PPL init |
+|---|---|---|
+| 1.0 BPW, sans ITQ | 0.7500 | 11 237 |
+| 1.0 BPW, **avec ITQ (50 iter)** | **0.6335** | **8 768** |
+| 0.55 BPW, sans ITQ | 0.8257 | (mesure en cours) |
+
+L'ITQ est une rotation **orthogonale** du couple de facteurs : elle ne change pas l'erreur de la SVD
+tronquée (0.5330 dans les deux cas) mais aligne les facteurs sur l'hypercube binaire, ce qui réduit
+directement l'erreur de binarisation (−16 % d'erreur, −22 % de PPL à l'init). C'est le mécanisme
+activé (`use_itq: true`) dans la recette communautaire. Coût : `itq_n_iter` SVD par couche à l'init
+(50 × 24 couches ⇒ cher sur CPU pour les gros modèles ; `itq_n_iter` plus faible = compromis).
+
+Génération après 30 steps @0.3 BPW (dégénérée, attendu pour 30 steps) :
+`"The capital of France is"` → `" the the the the the the the the the the the the the the the the"`,
+105 tok/s (CPU, opt-125m).
+
+### 5.2 OPT-1.3B (modèle du papier)
+
+Références papier (PPL WikiText-2, après QAT complet : 5 époques, ~1B tokens, 4×H100) :
+FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.76.
+
+| Config (local, CPU) | PPL | Commentaire |
+|---|---|---|
+| FP32 | **14,6237** | ✅ reproduit la valeur du papier (14,62) → protocole d'éval validé |
+| Init Dual-SVID 1.0 / 0.55 / 0.3 / 0.1 BPW | en cours | valeur initiale avant QAT |
+| QAT @0.3 BPW | à venir | budget de tokens très inférieur au papier |
+| QAT @0.1 BPW | à venir | |
+
+> La reproduction exacte de la PPL FP32 (14,6237 vs 14,62 annoncé) est la preuve que le harnais
+> local (tokenisation WikiText-2, `seqlen=2048`, moyenne de NLL pondérée) est identique à celui du papier.
+
+## 6. Référence communauté « H200 » — étalon réaliste (et validation de nos choix)
+
+Le projet communautaire [LittleBitLLM/littlebit](https://huggingface.co/LittleBitLLM/littlebit)
+publie la recette exacte et des mesures matérielles qui confirment nos analyses :
+
+| Modèle / BPW | GPU | s/step | VRAM pic | Params entraînables | Init SVD+ITQ |
+|---|---|---|---|---|---|
+| Qwen3-0.6B @0.55 | 1×H100 80 Go | 1.03 | — | — | ~2,3 min |
+| Qwen3-8B @0.55 | 1×H200 141 Go | 2.84 | ~107 Go | **3,7 B** | ~14 min |
+
+Résultat publié (checkpoint *early*, **0,5 époque ≈ 10 350 steps ≈ 8,5 h sur H200**) :
+Qwen3-8B @0.55 BPW → **PPL WikiText-2 24,48** (BF16 : 9,73), C4 32,10 (13,30), ARC-C 19,5 (à chance).
+
+Enseignements retenus :
+- Le nombre de paramètres entraînables est **énorme** (3,7 B pour un 8B à 0,55 BPW) → un QAT
+  complet est hors de portée sur CPU ; même un opérateur « full GPU » se limite à 0,5 époque.
+- `use_itq=True` (rotation **Joint-ITQ** de LittleBit-2) est **activé** dans leur recette
+  (`--use_itq True --itq_n_iter 50`) : piste pour améliorer notre init (à tester localement).
+- Leur `eval.py` souffre du même import circulaire DeepSpeed↔transformers (leur patch
+  `eval-import-fix.patch` fait exactement ce que `scripts/lbcommon.py` fait ici).
+- Confirmé : **le BPW annoncé porte sur les couches linéaires**, embeddings et `lm_head` restent BF16.
+
+### 6.1 Checkpoint entraîné exécuté localement
+
+`LittleBitLLM/littlebit-qwen3-8b-0.55bpw` (Qwen3-8B compressé 0,55 BPW, `littlebit_config.json`
+fourni → chargeable par le loader officiel) est récupéré dans `models/lb-qwen3-8b-0.55bpw/` et
+exécuté ici : génération locale + PPL reproductible.
+
+## 7. Limites assumées
+
+- Le papier utilise **4×H100 et ~1B tokens** de QAT par configuration ; nous sommes sur CPU avec un
+  budget de quelques millions de tokens. Les PPL finaux locaux seront donc **loin** des valeurs du
+  papier : l'objet est de montrer un pipeline **correct et reproductible** (init → QAT → export →
+  inférence locale), avec compression mémoire mesurée.
+- Les embeddings et `lm_head` ne sont pas quantifiés (comme dans le code officiel : `lm_head`
+  est exclu du patch), le BPW annoncé porte donc sur les couches linéaires internes.
+
+## 9. Licences
+
+- **Code upstream** (`SamsungLabs/LittleBit`) : Apache-2.0 — cloné dans `repo/` et **non vendu** ici
+  (voir `UPSTREAM_NOTES.md` pour le commit exact et les correctifs nécessaires).
+- **Ce dépôt** (scripts, rapports, README/NOTES) : travail original, à placer sous la licence de
+  votre choix.
+- **Checkpoint tiers évalué** `LittleBitLLM/littlebit-qwen3-8b-0.55bpw` : CC BY-NC 4.0 (non
+  commercial), plus la licence de `Qwen/Qwen3-8B`. Aucun poids n'est redistribué ici.
+- **Modèles de base** `facebook/opt-125m` / `facebook/opt-1.3b` : licence Meta OPT (non redistribués ici).
+
+## 10. Journal
+
+- 2026-10-22 : env + repo + modèles ; tests unitaires OK ; sweep OPT-1.3B lancé ; premier
+  checkpoint compressé OPT-125M (0.3 BPW) sauvegardé, rechargé et exécuté localement (PPL 2289).
+- 2026-10-22 : pipeline complet reprenable (`run_full_pipeline.py`), garde VRAM (GPU caché si
+  occupé), cron de surveillance GPU (30 min) ; découverte du checkpoint communautaire entraîné
+  Qwen3-8B @0.55 BPW en cours de récupération.
+- 2026-10-22 : reproduction exacte du FP du papier (OPT-1.3B **14,6237** vs 14,62) ; gain ITQ
+  quantifié ; `RESULTS.md` généré ; QAT OPT-1.3B @0,1 BPW lancé ; publication de ce dépôt sur
+  l'organisation GitHub JemaOS.

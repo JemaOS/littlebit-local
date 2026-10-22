@@ -1,0 +1,81 @@
+{
+  "model_id": "models/opt-125m",
+  "eff_bit_target": 1.0,
+  "residual": true,
+  "init_diagnostics": {
+    "rel_err_dualsvid_global": 0.6334730078044134,
+    "rel_err_trunc_svd_global": 0.5330375833837745,
+    "per_layer_sample": [
+      {
+        "name": "model.decoder.layers.0.self_attn.k_proj",
+        "rank": 168,
+        "eff_bit_actual": 0.9674,
+        "rel_err_dualsvid": 0.544,
+        "rel_err_trunc_svd": 0.3857
+      }
+    ]
+  },
+  "layers": [
+    [
+      "model.decoder.layers.0.self_attn.k_proj",
+      768,
+      768,
+      168,
+      1.0,
+      0.9674
+    ],
+    [
+      "model.decoder.layers.0.self_attn.v_proj",
+      768,
+      768,
+      168,
+      1.0,
+      0.9674
+    ],
+    [
+      "model.decoder.layers.0.self_attn.q_proj",
+      768,
+      768,
+      168,
+      1.0,
+      0.9674
+    ],
+    [
+      "model.decoder.layers.0.self_attn.out_proj",
+      768,
+      768,
+      168,
+      1.0,
+      0.9674
+    ],
+    [
+      "model.decoder.layers.0.fc1",
+      768,
+      3072,
+      288,
+      1.0,
+      0.9935
+    ],
+    [
+      "model.decoder.layers.0.fc2",
+      3072,
+      768,
+      288,
+      1.0,
+      0.9935
+    ]
+  ],
+  "eff_bit_actual_mean": 0.9761000000000001,
+  "eff_bit_actual_min": 0.9674,
+  "eff_bit_actual_max": 0.9935,
+  "ppl_wikitext2": 8768.1259765625,
+  "storage": {
+    "quantized_linear_params": 84934656,
+    "quantized_linear_bytes": 11851776,
+    "real_bpw_on_linears": 1.1163194444444444,
+    "fp16_reference_linears_bytes": 169869312,
+    "compression_x_on_linears": 14.332814930015552,
+    "whole_model_bytes": 474212352,
+    "non_linear_bytes": 472308096
+  }
+}

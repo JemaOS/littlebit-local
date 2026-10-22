@@ -1,0 +1,21 @@
+# --- données lourdes / régénérables (jamais commitées) ---
+venv/
+repo/
+models/
+out/
+*.part
+
+# --- sorties de compilation ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- journaux volumineux (les résultats chiffrés *.json sont versionnés) ---
+logs/*.log
+logs/*.tfevents*
+logs/*.part
+
+# --- divers ---
+.kilo/
+*.swp
+.DS_Store

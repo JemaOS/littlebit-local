@@ -1,0 +1,6 @@
+{
+  "model_id": "models/opt-125m",
+  "eff_bit_target": 1.0,
+  "residual": true,
+  "ppl_wikitext2": 27.65525245666504
+}

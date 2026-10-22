@@ -1,0 +1,10 @@
+{
+  "model_id": "models/opt-125m",
+  "eff_bit": 0.3,
+  "residual": true,
+  "max_steps": 30,
+  "lr": 0.00012,
+  "train_seconds": 400.49953055381775,
+  "train_samples": 1185,
+  "save_dir": "out/opt125m-0.3-qat"
+}

@@ -1,0 +1,18 @@
+{
+  "tag": "pipe125m",
+  "model_id": "models/opt-125m",
+  "fp_ppl": 27.65525245666504,
+  "qat_steps": 5,
+  "bs": 2,
+  "train_seqlen": 512,
+  "rows": [
+    {
+      "bpw": 0.1,
+      "init_ppl": 61495.60546875,
+      "qat_ppl": null,
+      "size_mb": null,
+      "tok_s": null,
+      "completion": null
+    }
+  ]
+}

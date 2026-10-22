@@ -1,0 +1,6 @@
+{
+  "model_id": "/home/john/r132/littlebit/models/opt-1.3b",
+  "eff_bit_target": 1.0,
+  "residual": true,
+  "ppl_wikitext2": 14.623747825622559
+}
