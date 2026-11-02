@@ -155,6 +155,18 @@ FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.7
 > `"The capital of France is"` → **`" the largest city in France. The city is the largest city in France. The city of Paris is the largest city in France."`**
 > (43 tok/s en éval GPU). Rien à voir avec les sorties dégénérées des runs courts à 0,1/0,3 BPW.
 
+### 5.2.1 ITQ de bout en bout — même budget, même protocole
+
+| OPT-1.3B @0,55 BPW, 3000 steps | PPL WikiText-2 | Δ |
+|---|---|---|
+| sans ITQ | 109,53 | référence |
+| **avec Joint-ITQ (`itq_n_iter=20`)** | **77,93** | **−29 % de PPL** |
+
+Le gain observé à l'initialisation (erreur 0,826 → 0,760) se **transmet donc jusqu'au modèle final** :
+la rotation orthogonale aligne les facteurs sur l'hypercube binaire, ce qui rend le seuil de
+binarisation plus facile à traverser pendant le QAT. Génération ITQ : `"the capital of the French
+Republic of France…"` (grammaticale, 66,5 tok/s). C'est le réglage retenu pour les runs longs.
+
 Erreurs de reconstruction de l'init (Frobenius global) : 0,735 / 0,815 / 0,876 / 0,941 à
 1,0 / 0,55 / 0,3 / 0,1 BPW (contre 0,546 / 0,703 / 0,808 / 0,913 pour la SVD tronquée seule).
 

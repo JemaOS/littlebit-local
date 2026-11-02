@@ -1,0 +1,16 @@
+{
+  "model_dir": "out/opt1.3b-0.55-qat-itq",
+  "size_mb": 291.7,
+  "binarized": 144,
+  "packed_mb": 81.199,
+  "scales_mb": 4.803,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "ppl_wikitext2": 77.92941284179688,
+  "ppl_wikitext2_chunks": 140,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " the capital of the French Republic of France.\nThe French Republic of France is the capital of the French Republic of France.\n\nThe French Republic of France",
+    "tokens_per_s": 66.514
+  }
+}
