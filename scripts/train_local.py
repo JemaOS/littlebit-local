@@ -144,6 +144,9 @@ def main():
     ap.add_argument("--device", default="auto")
     ap.add_argument("--dtype", default="auto", choices=["auto", "float32", "bfloat16"])
     ap.add_argument("--gradient_checkpointing", type=str2bool, default=True)
+    ap.add_argument("--optim", default="adamw_torch",
+                    choices=["adamw_torch", "paged_adamw_8bit", "adamw_bnb_8bit", "adafactor"],
+                    help="optimizer (8-bit Adam keeps the FP32 Adam states off the 12 GB budget)")
     ap.add_argument("--save_dtype", default="bfloat16", choices=["bfloat16", "float32"],
                     help="dtype of the non-binary tensors in the saved checkpoint (upstream uses bfloat16)")
     ap.add_argument("--report_json", default=None)
@@ -205,7 +208,7 @@ def main():
         save_strategy="no",
         learning_rate=ns.lr,
         lr_scheduler_type="cosine",
-        optim="adamw_torch",
+        optim=ns.optim,
         adam_beta1=0.9,
         adam_beta2=0.999,
         report_to=[],

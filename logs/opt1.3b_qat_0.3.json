@@ -1,0 +1,10 @@
+{
+  "model_id": "models/opt-1.3b",
+  "eff_bit": 0.3,
+  "residual": true,
+  "max_steps": 300,
+  "lr": 0.0002,
+  "train_seconds": 359.8138074874878,
+  "train_samples": 4740,
+  "save_dir": "out/opt1.3b-0.3-qat"
+}

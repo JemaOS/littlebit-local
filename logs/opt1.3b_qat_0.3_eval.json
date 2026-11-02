@@ -1,0 +1,16 @@
+{
+  "model_dir": "out/opt1.3b-0.3-qat",
+  "size_mb": 254.21,
+  "binarized": 144,
+  "packed_mb": 42.074,
+  "scales_mb": 4.625,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "ppl_wikitext2": 465.6932067871094,
+  "ppl_wikitext2_chunks": 140,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " a new-@-@-@-@-@-@-@-@-@-@-@",
+    "tokens_per_s": 35.279
+  }
+}
