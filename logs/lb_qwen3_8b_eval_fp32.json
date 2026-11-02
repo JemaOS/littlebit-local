@@ -1,0 +1,16 @@
+{
+  "model_dir": "models/lb-qwen3-8b-0.55bpw",
+  "size_mb": 2846.42,
+  "binarized": 252,
+  "packed_mb": 466.256,
+  "scales_mb": 24.134,
+  "device": "cpu",
+  "dtype": "float32",
+  "ppl_wikitext2": 24.476964950561523,
+  "ppl_wikitext2_chunks": 146,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " Paris, and the city is the capital of the French Republic. The capital is located in the French Riviera, which",
+    "tokens_per_s": 1.261
+  }
+}

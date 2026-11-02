@@ -1,6 +1,6 @@
 # LittleBit — résultats agrégés
 
-Généré par `scripts/report.py` le 2026-10-22 17:31. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
+Généré par `scripts/report.py` le 2026-11-02 13:26. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
 
 ## Perplexité
 
@@ -8,10 +8,19 @@ Généré par `scripts/report.py` le 2026-10-22 17:31. Toutes les valeurs provie
 |---|---|---|---|---|---|---|
 | `125m_e0.1.json` | opt-125m | 0.10 | 61495.6055 | — | 0.235 | 68.0x |
 | `125m_e0.3.json` | opt-125m | 0.30 | 206151.8281 | — | 0.434 | 36.8x |
+| `125m_e0.55.json` | opt-125m | 0.55 | 39106.3984 | — | 0.666 | 24.0x |
 | `125m_e1.0.json` | opt-125m | 1.00 | 11236.9365 | — | 1.116 | 14.3x |
 | `125m_fp.json` | opt-125m | 1.00 | 27.6553 | — | — | —x |
+| `125m_itq_e0.55.json` | opt-125m | 0.55 | 6683.3140 | — | 0.666 | 24.0x |
+| `125m_itq_e1.0.json` | opt-125m | 1.00 | 8768.1260 | — | 1.116 | 14.3x |
 | `eval_125m_qat30.json` | opt125m-0.3-qat | — | 2289.1541 | 158.7 | — | —x |
 | `fp.json` | opt-1.3b | 1.00 | 14.6237 | — | — | —x |
+| `init_0.1.json` | opt-1.3b | 0.10 | 14501.8047 | — | 0.132 | 121.1x |
+| `init_0.3.json` | opt-1.3b | 0.30 | 13092.6826 | — | 0.340 | 47.1x |
+| `init_0.55.json` | opt-1.3b | 0.55 | 18975.4199 | — | 0.601 | 26.6x |
+| `init_1.0.json` | opt-1.3b | 1.00 | 18211.4336 | — | 1.044 | 15.3x |
+| `lb_qwen3_8b_eval_fp32.json` | lb-qwen3-8b-0.55bpw | — | 24.4770 | 2846.4 | — | —x |
+| `opt1.3b_qat_0.1_eval.json` | opt1.3b-0.1-qat | — | 775.3759 | 420.8 | — | —x |
 | `pipe125m_fp.json` | opt-125m | 1.00 | 27.6553 | — | — | —x |
 | `pipe125m_init_0.1.json` | opt-125m | 0.10 | 61495.6055 | — | 0.235 | 68.0x |
 
@@ -20,6 +29,8 @@ Généré par `scripts/report.py` le 2026-10-22 17:31. Toutes les valeurs provie
 | rapport | modèle | tok/s | complétion |
 |---|---|---|---|
 | `eval_125m_qat30.json` | opt125m-0.3-qat | 105.21 | ` the the the the the the the the the the the the the the the the` |
+| `lb_qwen3_8b_eval_fp32.json` | lb-qwen3-8b-0.55bpw | 1.26 | ` Paris, and the city is the capital of the French Republic. The capital is located in the French Riviera, which` |
+| `opt1.3b_qat_0.1_eval.json` | opt1.3b-0.1-qat | 8.60 | ` the first first first first first first first first the first first first first the first first first first the first f` |
 
 ## Références papier (PPL WikiText-2, après QAT complet : 5 époques, ~1B tokens, 4×H100)
 

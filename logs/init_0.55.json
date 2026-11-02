@@ -1,0 +1,88 @@
+{
+  "model_id": "/home/john/r132/littlebit/models/opt-1.3b",
+  "eff_bit_target": 0.55,
+  "residual": true,
+  "init_diagnostics": {
+    "rel_err_dualsvid_global": 0.8152776500713228,
+    "rel_err_trunc_svd_global": 0.7034474154358852,
+    "per_layer_sample": [
+      {
+        "name": "model.decoder.layers.0.self_attn.k_proj",
+        "rank": 264,
+        "eff_bit_actual": 0.5489,
+        "rel_err_dualsvid": 0.8258,
+        "rel_err_trunc_svd": 0.6589
+      },
+      {
+        "name": "model.decoder.layers.0.self_attn.v_proj",
+        "rank": 264,
+        "eff_bit_actual": 0.5489,
+        "rel_err_dualsvid": 0.8244,
+        "rel_err_trunc_svd": 0.7175
+      }
+    ]
+  },
+  "layers": [
+    [
+      "model.decoder.layers.0.self_attn.k_proj",
+      2048,
+      2048,
+      264,
+      0.55,
+      0.5489
+    ],
+    [
+      "model.decoder.layers.0.self_attn.v_proj",
+      2048,
+      2048,
+      264,
+      0.55,
+      0.5489
+    ],
+    [
+      "model.decoder.layers.0.self_attn.q_proj",
+      2048,
+      2048,
+      264,
+      0.55,
+      0.5489
+    ],
+    [
+      "model.decoder.layers.0.self_attn.out_proj",
+      2048,
+      2048,
+      264,
+      0.55,
+      0.5489
+    ],
+    [
+      "model.decoder.layers.0.fc1",
+      2048,
+      8192,
+      432,
+      0.55,
+      0.5477
+    ],
+    [
+      "model.decoder.layers.0.fc2",
+      8192,
+      2048,
+      432,
+      0.55,
+      0.5477
+    ]
+  ],
+  "eff_bit_actual_mean": 0.5485000000000001,
+  "eff_bit_actual_min": 0.5477,
+  "eff_bit_actual_max": 0.5489,
+  "ppl_wikitext2": 18975.419921875,
+  "storage": {
+    "quantized_linear_params": 1207959552,
+    "quantized_linear_bytes": 90783744,
+    "real_bpw_on_linears": 0.6012369791666666,
+    "fp16_reference_linears_bytes": 2415919104,
+    "compression_x_on_linears": 26.61180292365999,
+    "whole_model_bytes": 2968174592,
+    "non_linear_bytes": 2958578432
+  }
+}

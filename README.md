@@ -118,13 +118,14 @@ Erreur de reconstruction globale de l'init (Frobenius relatif) :
 |---|---|---|
 | 1.0 BPW, sans ITQ | 0.7500 | 11 237 |
 | 1.0 BPW, **avec ITQ (50 iter)** | **0.6335** | **8 768** |
-| 0.55 BPW, sans ITQ | 0.8257 | (mesure en cours) |
+| 0.55 BPW, sans ITQ | 0.8257 | 39 106 |
+| 0.55 BPW, **avec ITQ (50 iter)** | **0.7602** | **6 683** |
 
 L'ITQ est une rotation **orthogonale** du couple de facteurs : elle ne change pas l'erreur de la SVD
-tronquée (0.5330 dans les deux cas) mais aligne les facteurs sur l'hypercube binaire, ce qui réduit
-directement l'erreur de binarisation (−16 % d'erreur, −22 % de PPL à l'init). C'est le mécanisme
-activé (`use_itq: true`) dans la recette communautaire. Coût : `itq_n_iter` SVD par couche à l'init
-(50 × 24 couches ⇒ cher sur CPU pour les gros modèles ; `itq_n_iter` plus faible = compromis).
+tronquée mais aligne les facteurs sur l'hypercube binaire, ce qui réduit directement l'erreur de
+binarisation. Le gain **croît quand le débit baisse** (−16 % d'erreur à 1,0 BPW, −8 % mais **5,85×**
+de PPL en moins à 0,55 BPW). C'est le mécanisme activé (`use_itq: true`) dans la recette
+communautaire. Coût : `itq_n_iter` SVD par couche à l'init.
 
 Génération après 30 steps @0.3 BPW (dégénérée, attendu pour 30 steps) :
 `"The capital of France is"` → `" the the the the the the the the the the the the the the the the"`,
@@ -135,15 +136,24 @@ Génération après 30 steps @0.3 BPW (dégénérée, attendu pour 30 steps) :
 Références papier (PPL WikiText-2, après QAT complet : 5 époques, ~1B tokens, 4×H100) :
 FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.76.
 
-| Config (local, CPU) | PPL | Commentaire |
+| Config (local, CPU) | PPL WikiText-2 | Détails |
 |---|---|---|
-| FP32 | **14,6237** | ✅ reproduit la valeur du papier (14,62) → protocole d'éval validé |
-| Init Dual-SVID 1.0 / 0.55 / 0.3 / 0.1 BPW | en cours | valeur initiale avant QAT |
-| QAT @0.3 BPW | à venir | budget de tokens très inférieur au papier |
-| QAT @0.1 BPW | à venir | |
+| FP32 (référence) | **14,6237** | ✅ identique au papier (14,62) → protocole validé |
+| Init Dual-SVID @1,0 BPW | 18 211 | BPW réel 1,044 — compression **15,3×** (linéaires) |
+| Init Dual-SVID @0,55 BPW | 18 975 | BPW réel 0,601 — **26,6×** |
+| Init Dual-SVID @0,3 BPW | 13 093 | BPW réel 0,340 — **47,1×** |
+| Init Dual-SVID @0,1 BPW | 14 502 | BPW réel 0,132 — **121,1×** |
+| **QAT 200 steps @0,1 BPW** | **775,4** | 14 502 → 775 soit **18,7×** ; checkpoint 421 Mo (dont **11 Mo** de facteurs binaires + 4,5 Mo d'échelles) ; 8,6 tok/s ; génération encore dégénérée |
+| QAT 300 steps @0,3 BPW | en cours | lr 2,0e-4 (valeur papier OPT-1.3B) |
+| QAT 300 steps @0,55 BPW | en cours | lr 1,2e-4 (valeur papier OPT-1.3B) |
 
-> La reproduction exacte de la PPL FP32 (14,6237 vs 14,62 annoncé) est la preuve que le harnais
-> local (tokenisation WikiText-2, `seqlen=2048`, moyenne de NLL pondérée) est identique à celui du papier.
+Erreurs de reconstruction de l'init (Frobenius global) : 0,735 / 0,815 / 0,876 / 0,941 à
+1,0 / 0,55 / 0,3 / 0,1 BPW (contre 0,546 / 0,703 / 0,808 / 0,913 pour la SVD tronquée seule).
+
+> **Interprétation** : à l'initialisation, le modèle est détruit à *tous* les débits sub-1-bit
+> (PPL ≈ 1,3–1,9·10⁴) — c'est attendu et cohérent avec le papier : c'est le QAT qui reconstruit la
+> qualité. Le run 0,1 BPW le démontre (18,7× de gain en 200 steps, soit ~0,4 M tokens), mais reste
+> très loin des 53,76 du papier, obtenus avec **~1 milliard de tokens sur 4×H100** (facteur ≈ 2 500×).
 
 ## 6. Référence communauté « H200 » — étalon réaliste (et validation de nos choix)
 
@@ -167,11 +177,22 @@ Enseignements retenus :
   `eval-import-fix.patch` fait exactement ce que `scripts/lbcommon.py` fait ici).
 - Confirmé : **le BPW annoncé porte sur les couches linéaires**, embeddings et `lm_head` restent BF16.
 
-### 6.1 Checkpoint entraîné exécuté localement
+### 6.1 Checkpoint entraîné exécuté localement — **validation indépendante**
 
-`LittleBitLLM/littlebit-qwen3-8b-0.55bpw` (Qwen3-8B compressé 0,55 BPW, `littlebit_config.json`
-fourni → chargeable par le loader officiel) est récupéré dans `models/lb-qwen3-8b-0.55bpw/` et
-exécuté ici : génération locale + PPL reproductible.
+Le dépôt publié `LittleBitLLM/littlebit-qwen3-8b-0.55bpw` (Qwen3-8B compressé à 0,55 BPW,
+0,5 époque de distillation sur 1×H200) a été téléchargé (`models/lb-qwen3-8b-0.55bpw/`, 2,85 Go)
+et exécuté **ici, sur CPU**, avec le loader officiel : 252 couches `LittleBitLinear` passées en mode
+binarisé, **466 Mo de facteurs binaires + 24 Mo d'échelles** (soit ~0,49 BPW sur les linéaires).
+
+| Métrique | Valeur publiée | **Notre mesure locale** |
+|---|---|---|
+| PPL WikiText-2 (146 chunks, seqlen 2048) | 24,48 | **24,4770** ✅ |
+| Génération | — | `"The capital of France is"` → `" Paris, and the city is the capital of the French Republic. The capital is located in the French Riviera, which"` |
+| Débit | — | 1,26 tok/s (CPU, fp32, 3 Go de RAM) |
+
+C'est la double preuve attendue : (1) notre harnais de chargement/évaluation est **exact** (PPL
+identique à 4 chiffres significatifs au chiffre publié), (2) un modèle LittleBit **entraîné**
+génère du texte cohérent en local sur cette machine, sans GPU.
 
 ## 7. Limites assumées
 
