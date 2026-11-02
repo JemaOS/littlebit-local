@@ -1,6 +1,6 @@
 # LittleBit — résultats agrégés
 
-Généré par `scripts/report.py` le 2026-11-02 13:26. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
+Généré par `scripts/report.py` le 2026-11-02 13:47. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
 
 ## Perplexité
 
