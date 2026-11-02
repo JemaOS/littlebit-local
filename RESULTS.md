@@ -1,6 +1,6 @@
 # LittleBit — résultats agrégés
 
-Généré par `scripts/report.py` le 2026-11-02 18:20. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
+Généré par `scripts/report.py` le 2026-11-02 21:20. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
 
 ## Perplexité
 
@@ -24,6 +24,7 @@ Généré par `scripts/report.py` le 2026-11-02 18:20. Toutes les valeurs provie
 | `opt1.3b_qat_0.1_long_eval.json` | opt1.3b-0.1-qat-long | — | 536.4883 | 224.4 | — | —x |
 | `opt1.3b_qat_0.3_eval.json` | opt1.3b-0.3-qat | — | 465.6932 | 254.2 | — | —x |
 | `opt1.3b_qat_0.3_long_eval.json` | opt1.3b-0.3-qat-long | — | 146.4551 | 254.2 | — | —x |
+| `opt1.3b_qat_0.55_itq_6k_eval.json` | opt1.3b-0.55-qat-itq-6k | — | 68.1079 | 291.7 | — | —x |
 | `opt1.3b_qat_0.55_itq_eval.json` | opt1.3b-0.55-qat-itq | — | 77.9294 | 291.7 | — | —x |
 | `opt1.3b_qat_0.55_long_eval.json` | opt1.3b-0.55-qat-long | — | 109.5307 | 291.7 | — | —x |
 | `pipe125m_fp.json` | opt-125m | 1.00 | 27.6553 | — | — | —x |
@@ -39,6 +40,7 @@ Généré par `scripts/report.py` le 2026-11-02 18:20. Toutes les valeurs provie
 | `opt1.3b_qat_0.1_long_eval.json` | opt1.3b-0.1-qat-long | 63.64 | ` a few of the first-@.@.@.@.@.@.@ @.@ @.` |
 | `opt1.3b_qat_0.3_eval.json` | opt1.3b-0.3-qat | 35.28 | ` a new-@-@-@-@-@-@-@-@-@-@-@` |
 | `opt1.3b_qat_0.3_long_eval.json` | opt1.3b-0.3-qat-long | 69.17 | ` the capital of the United Kingdom of France. The United Kingdom of France is the capital of the United Kingdom of Franc` |
+| `opt1.3b_qat_0.55_itq_6k_eval.json` | opt1.3b-0.55-qat-itq-6k | 69.90 | ` the French capital of the Republic of France. The French capital is located in the city of Paris, in the north-west of ` |
 | `opt1.3b_qat_0.55_itq_eval.json` | opt1.3b-0.55-qat-itq | 66.51 | ` the capital of the French Republic of France. The French Republic of France is the capital of the French Republic of Fr` |
 | `opt1.3b_qat_0.55_long_eval.json` | opt1.3b-0.55-qat-long | 42.98 | ` the largest city in France. The city is the largest city in France.  The city of Paris is the largest city in France.  ` |
 

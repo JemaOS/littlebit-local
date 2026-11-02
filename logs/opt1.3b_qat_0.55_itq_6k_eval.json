@@ -1,0 +1,16 @@
+{
+  "model_dir": "out/opt1.3b-0.55-qat-itq-6k",
+  "size_mb": 291.7,
+  "binarized": 144,
+  "packed_mb": 81.199,
+  "scales_mb": 4.803,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "ppl_wikitext2": 68.1079330444336,
+  "ppl_wikitext2_chunks": 140,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " the French capital of the Republic of France.\nThe French capital is located in the city of Paris, in the north-west of the city.\n\nThe capital is located in the city of Paris , in the south-west of",
+    "tokens_per_s": 69.901
+  }
+}

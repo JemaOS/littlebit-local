@@ -136,24 +136,33 @@ Génération après 30 steps @0.3 BPW (dégénérée, attendu pour 30 steps) :
 Références papier (PPL WikiText-2, après QAT complet : 5 époques, ~1B tokens, 4×H100) :
 FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.76.
 
-| Config (local, CPU) | PPL WikiText-2 | Détails |
+| Config (local, CPU/GPU) | PPL WikiText-2 | Détails |
 |---|---|---|
 | FP32 (référence) | **14,6237** | ✅ identique au papier (14,62) → protocole validé |
 | Init Dual-SVID @1,0 BPW | 18 211 | BPW réel 1,044 — compression **15,3×** (linéaires) |
 | Init Dual-SVID @0,55 BPW | 18 975 | BPW réel 0,601 — **26,6×** |
 | Init Dual-SVID @0,3 BPW | 13 093 | BPW réel 0,340 — **47,1×** |
 | Init Dual-SVID @0,1 BPW | 14 502 | BPW réel 0,132 — **121,1×** |
-| **QAT 200 steps @0,1 BPW** | **775,4** | 14 502 → 775 soit **18,7×** ; checkpoint 421 Mo (dont **11 Mo** de facteurs binaires + 4,5 Mo d'échelles) ; 8,6 tok/s ; génération encore dégénérée |
-| **QAT 3000 steps @0,55 BPW** (GPU) | **109,5** | 18 975 → 109,5 soit **×173** ; checkpoint 292 Mo (dont **81 Mo** de facteurs binaires + 4,8 Mo d'échelles) ; **43 tok/s** ; texte **cohérent** |
-| **QAT 3000 steps @0,3 BPW** (GPU) | **146,5** | 13 093 → 146,5 soit **×89** ; 254 Mo dont **42 Mo** binaires ; **69 tok/s** ; texte **grammatical mais factuellement faux** |
-| QAT 300 steps @0,3 BPW (GPU) | 465,7 | 13 093 → 465,7 (**×28,1**) ; 254 Mo dont 42 Mo binaires ; 35,3 tok/s |
+| **QAT 6000 steps @0,55 BPW + ITQ** | **68,1** | ✅ **meilleur modèle** : 18 975 → 68,1 (**×279**) ; 292 Mo dont **81 Mo binaires** ; **69,9 tok/s** ; texte cohérent |
+| QAT 3000 steps @0,55 BPW + ITQ | 77,9 | même budget que ci-dessous : **−29 %** grâce à l'ITQ |
+| QAT 3000 steps @0,55 BPW | 109,5 | 18 975 → 109,5 (×173) ; 292 Mo dont 81 Mo binaires ; 43 tok/s ; texte cohérent |
+| **QAT 3000 steps @0,3 BPW** (GPU) | **146,5** | 13 093 → 146,5 (**×89**) ; 254 Mo dont 42 Mo binaires ; 69 tok/s ; grammatical mais faux |
 | QAT 600 steps @0,1 BPW (GPU) | 536,5 | 14 502 → 536,5 (**×27,0**) ; 224 Mo dont 11 Mo binaires ; 63,6 tok/s |
+| QAT 300 steps @0,3 BPW (GPU) | 465,7 | 13 093 → 465,7 (**×28,1**) ; 254 Mo dont 42 Mo binaires ; 35,3 tok/s |
 | QAT 200 steps @0,1 BPW (CPU) | 775,4 | 14 502 → 775,4 (×18,7) ; 421 Mo dont 11 Mo binaires ; 8,6 tok/s |
 
-> **Premier modèle sub-1-bit entraîné ici qui parle** — OPT-1.3B @0,55 BPW (≈26× moins de poids
-> linéaires qu'en FP16), 3000 steps, 6,1 M tokens vus :
-> `"The capital of France is"` → **`" the largest city in France. The city is the largest city in France. The city of Paris is the largest city in France."`**
-> (43 tok/s en éval GPU). Rien à voir avec les sorties dégénérées des runs courts à 0,1/0,3 BPW.
+> **Modèle final** — OPT-1.3B @0,55 BPW + Joint-ITQ, 6000 steps (10 M tokens vus, 5 époques) :
+> `"The capital of France is"` → **`" the French capital of the Republic of France. The French capital is located in the city of Paris, in the north-west of the city."`**
+> (69,9 tok/s, 292 Mo sur disque dont 81 Mo de facteurs binaires, ≈26× moins de poids linéaires qu'en FP16.)
+
+### 5.2.2 Limite identifiée : passage de « compute-limited » à « data-limited »
+
+Doubler le calcul (3000 → 6000 steps) ne rend que **12,6 %** de PPL (77,9 → 68,1), alors que les
+3000 premiers steps en rendaient 29 % (109,5 → 77,9). Raison : l'entraînement tourne sur
+**WikiText-2 train** (~2 M tokens uniques) et atteint **5,06 époques** — les données se répètent.
+Le papier utilise C4 + WikiText-2 (~1 milliard de tokens). La prochaine marche n'est donc pas un
+réglage d'optimiseur mais **plus de données** (`--dataset c4_wiki`, déjà supporté par le dépôt),
+ce qui devrait rapprocher des 23,35 du papier sans changer le reste du pipeline.
 
 ### 5.2.1 ITQ de bout en bout — même budget, même protocole
 
@@ -240,6 +249,9 @@ génère du texte cohérent en local sur cette machine, sans GPU.
 - 2026-10-22 : pipeline complet reprenable (`run_full_pipeline.py`), garde VRAM (GPU caché si
   occupé), cron de surveillance GPU (30 min) ; découverte du checkpoint communautaire entraîné
   Qwen3-8B @0.55 BPW en cours de récupération.
+- 2026-11-02 : meilleur modele : OPT-1.3B @0,55 BPW + ITQ, 6000 steps -> PPL 68,1 (x279 vs init),
+  81 Mo de facteurs binaires, texte coherent, 69,9 tok/s ; ITQ = -29 % de PPL a budget egal ;
+  limite identifiee : data-limited (5 epoques sur WikiText-2 train, 2 M tokens uniques).
 - 2026-10-22 : reproduction exacte du FP du papier (OPT-1.3B **14,6237** vs 14,62) ; gain ITQ
   quantifié ; `RESULTS.md` généré ; QAT OPT-1.3B @0,1 BPW lancé ; publication de ce dépôt sur
   l'organisation GitHub JemaOS.
