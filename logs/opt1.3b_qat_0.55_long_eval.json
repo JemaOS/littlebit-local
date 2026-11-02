@@ -1,0 +1,16 @@
+{
+  "model_dir": "out/opt1.3b-0.55-qat-long",
+  "size_mb": 291.7,
+  "binarized": 144,
+  "packed_mb": 81.199,
+  "scales_mb": 4.803,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "ppl_wikitext2": 109.53073120117188,
+  "ppl_wikitext2_chunks": 140,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " the largest city in France.\nThe city is the largest city in France.\n\nThe city of Paris is the largest city in France.\n\nThe",
+    "tokens_per_s": 42.983
+  }
+}
