@@ -1,0 +1,16 @@
+{
+  "model_dir": "out/opt1.3b-0.3-qat-long",
+  "size_mb": 254.21,
+  "binarized": 144,
+  "packed_mb": 42.074,
+  "scales_mb": 4.625,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "ppl_wikitext2": 146.45506286621094,
+  "ppl_wikitext2_chunks": 140,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " the capital of the United Kingdom of France.\nThe United Kingdom of France is the capital of the United Kingdom of France.\n\n The United Kingdom of France",
+    "tokens_per_s": 69.167
+  }
+}

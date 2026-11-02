@@ -145,7 +145,7 @@ FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.7
 | Init Dual-SVID @0,1 BPW | 14 502 | BPW réel 0,132 — **121,1×** |
 | **QAT 200 steps @0,1 BPW** | **775,4** | 14 502 → 775 soit **18,7×** ; checkpoint 421 Mo (dont **11 Mo** de facteurs binaires + 4,5 Mo d'échelles) ; 8,6 tok/s ; génération encore dégénérée |
 | **QAT 3000 steps @0,55 BPW** (GPU) | **109,5** | 18 975 → 109,5 soit **×173** ; checkpoint 292 Mo (dont **81 Mo** de facteurs binaires + 4,8 Mo d'échelles) ; **43 tok/s** ; texte **cohérent** |
-| **QAT 3000 steps @0,3 BPW** (GPU) | en cours | 13 093 au départ (init) |
+| **QAT 3000 steps @0,3 BPW** (GPU) | **146,5** | 13 093 → 146,5 soit **×89** ; 254 Mo dont **42 Mo** binaires ; **69 tok/s** ; texte **grammatical mais factuellement faux** |
 | QAT 300 steps @0,3 BPW (GPU) | 465,7 | 13 093 → 465,7 (**×28,1**) ; 254 Mo dont 42 Mo binaires ; 35,3 tok/s |
 | QAT 600 steps @0,1 BPW (GPU) | 536,5 | 14 502 → 536,5 (**×27,0**) ; 224 Mo dont 11 Mo binaires ; 63,6 tok/s |
 | QAT 200 steps @0,1 BPW (CPU) | 775,4 | 14 502 → 775,4 (×18,7) ; 421 Mo dont 11 Mo binaires ; 8,6 tok/s |
