@@ -19,3 +19,4 @@ logs/*.part
 .kilo/
 *.swp
 .DS_Store
+data/

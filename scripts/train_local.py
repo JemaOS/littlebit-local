@@ -119,6 +119,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model_id", default="models/opt-1.3b")
     ap.add_argument("--dataset", default="wikitext2", choices=["wikitext2", "c4", "c4_wiki"])
+    ap.add_argument("--dataset_path", default=None,
+                    help="pre-built dataset dir (save_to_disk), e.g. data/c4_wiki_80k from prepare_c4.py")
     ap.add_argument("--data_root", default="./")
     ap.add_argument("--save_dir", default=None)
     ap.add_argument("--seed", type=int, default=42)
@@ -166,7 +168,11 @@ def main():
     print(f"INFO: device={device} dtype={dtype} eff_bit={ns.eff_bit} residual={ns.residual}", flush=True)
     tokenizer = load_tokenizer(ns.model_id)
 
-    if ns.dataset == "wikitext2":
+    if ns.dataset_path:
+        import datasets as hfds
+        ds = hfds.load_from_disk(ns.dataset_path)
+        train_ds = ds["train"] if isinstance(ds, hfds.DatasetDict) else ds
+    elif ns.dataset == "wikitext2":
         train_ds = get_wikitext2_train(tokenizer)
     else:
         train_ds = prepare_dataset(argparse.Namespace(data_root=ns.data_root, dataset=ns.dataset), tokenizer)
