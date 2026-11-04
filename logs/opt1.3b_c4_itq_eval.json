@@ -1,0 +1,16 @@
+{
+  "model_dir": "out/opt1.3b-0.55-c4-itq",
+  "size_mb": 291.7,
+  "binarized": 144,
+  "packed_mb": 81.199,
+  "scales_mb": 4.803,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "ppl_wikitext2": 71.79995727539062,
+  "ppl_wikitext2_chunks": 140,
+  "generation": {
+    "prompt": "The capital of France is",
+    "completion": " the capital of the United States, and the capital of the United Kingdom. The capital of France is the capital of the United Kingdom, and the capital of the United Kingdom. The capital of France is the capital of the United Kingdom, and",
+    "tokens_per_s": 72.022
+  }
+}

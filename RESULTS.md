@@ -1,6 +1,6 @@
 # LittleBit — résultats agrégés
 
-Généré par `scripts/report.py` le 2026-11-02 21:20. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
+Généré par `scripts/report.py` le 2026-11-04 02:25. Toutes les valeurs proviennent des rapports `logs/*.json` (aucune saisie manuelle).
 
 ## Perplexité
 
@@ -20,6 +20,7 @@ Généré par `scripts/report.py` le 2026-11-02 21:20. Toutes les valeurs provie
 | `init_0.55.json` | opt-1.3b | 0.55 | 18975.4199 | — | 0.601 | 26.6x |
 | `init_1.0.json` | opt-1.3b | 1.00 | 18211.4336 | — | 1.044 | 15.3x |
 | `lb_qwen3_8b_eval_fp32.json` | lb-qwen3-8b-0.55bpw | — | 24.4770 | 2846.4 | — | —x |
+| `opt1.3b_c4_itq_eval.json` | opt1.3b-0.55-c4-itq | — | 71.8000 | 291.7 | — | —x |
 | `opt1.3b_qat_0.1_eval.json` | opt1.3b-0.1-qat | — | 775.3759 | 420.8 | — | —x |
 | `opt1.3b_qat_0.1_long_eval.json` | opt1.3b-0.1-qat-long | — | 536.4883 | 224.4 | — | —x |
 | `opt1.3b_qat_0.3_eval.json` | opt1.3b-0.3-qat | — | 465.6932 | 254.2 | — | —x |
@@ -36,6 +37,7 @@ Généré par `scripts/report.py` le 2026-11-02 21:20. Toutes les valeurs provie
 |---|---|---|---|
 | `eval_125m_qat30.json` | opt125m-0.3-qat | 105.21 | ` the the the the the the the the the the the the the the the the` |
 | `lb_qwen3_8b_eval_fp32.json` | lb-qwen3-8b-0.55bpw | 1.26 | ` Paris, and the city is the capital of the French Republic. The capital is located in the French Riviera, which` |
+| `opt1.3b_c4_itq_eval.json` | opt1.3b-0.55-c4-itq | 72.02 | ` the capital of the United States, and the capital of the United Kingdom. The capital of France is the capital of the Un` |
 | `opt1.3b_qat_0.1_eval.json` | opt1.3b-0.1-qat | 8.60 | ` the first first first first first first first first the first first first first the first first first first the first f` |
 | `opt1.3b_qat_0.1_long_eval.json` | opt1.3b-0.1-qat-long | 63.64 | ` a few of the first-@.@.@.@.@.@.@ @.@ @.` |
 | `opt1.3b_qat_0.3_eval.json` | opt1.3b-0.3-qat | 35.28 | ` a new-@-@-@-@-@-@-@-@-@-@-@` |
