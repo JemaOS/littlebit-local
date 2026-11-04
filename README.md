@@ -156,7 +156,7 @@ FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.7
 > `"The capital of France is"` → **`" the French capital of the Republic of France. The French capital is located in the city of Paris, in the north-west of the city."`**
 > (69,9 tok/s, 292 Mo sur disque dont 81 Mo de facteurs binaires, ≈26× moins de poids linéaires qu'en FP16.)
 
-### 5.2.3 C4 vs WikiText-2 : le classement s'inverse selon le domaine mesuré
+### 5.2.1 C4 vs WikiText-2 : le classement s'inverse selon le domaine mesuré
 
 Deux modèles identiques (OPT-1.3B @0,55 BPW + ITQ, même init, même protocole), seule la **donnée
 d'entraînement** change. Évaluation croisée sur les deux domaines (140 chunks de 2048 tokens chacun,
@@ -184,11 +184,12 @@ Lecture :
 Doubler le calcul (3000 → 6000 steps) ne rend que **12,6 %** de PPL (77,9 → 68,1), alors que les
 3000 premiers steps en rendaient 29 % (109,5 → 77,9). Raison : l'entraînement tourne sur
 **WikiText-2 train** (~2 M tokens uniques) et atteint **5,06 époques** — les données se répètent.
-Le papier utilise C4 + WikiText-2 (~1 milliard de tokens). La prochaine marche n'est donc pas un
-réglage d'optimiseur mais **plus de données** (`--dataset c4_wiki`, déjà supporté par le dépôt),
-ce qui devrait rapprocher des 23,35 du papier sans changer le reste du pipeline.
+Le papier utilise C4 + WikiText-2 (~1 milliard de tokens). La marche suivante n'était donc pas un
+réglage d'optimiseur mais **plus de données** : c'est ce qui a été fait (40,4 M tokens de C4,
+section 5.2.1) — le gain se voit surtout **hors domaine** (PPL C4 70,3 vs 187,2), pas sur la PPL
+WikiText-2.
 
-### 5.2.1 ITQ de bout en bout — même budget, même protocole
+### 5.2.3 ITQ de bout en bout — même budget, même protocole
 
 | OPT-1.3B @0,55 BPW, 3000 steps | PPL WikiText-2 | Δ |
 |---|---|---|
