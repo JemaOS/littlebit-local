@@ -1,0 +1,6 @@
+{
+  "model_id": "models/opt-1.3b",
+  "eff_bit_target": 1.0,
+  "residual": true,
+  "ppl_c4": 14.727890968322754
+}

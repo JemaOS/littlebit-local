@@ -1,0 +1,11 @@
+{
+  "model_dir": "out/opt1.3b-0.55-qat-itq-6k",
+  "size_mb": 291.7,
+  "binarized": 144,
+  "packed_mb": 81.199,
+  "scales_mb": 4.803,
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "ppl_c4": 187.1935272216797,
+  "ppl_c4_chunks": 140
+}

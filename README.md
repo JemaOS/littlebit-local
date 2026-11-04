@@ -143,7 +143,8 @@ FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.7
 | Init Dual-SVID @0,55 BPW | 18 975 | BPW réel 0,601 — **26,6×** |
 | Init Dual-SVID @0,3 BPW | 13 093 | BPW réel 0,340 — **47,1×** |
 | Init Dual-SVID @0,1 BPW | 14 502 | BPW réel 0,132 — **121,1×** |
-| **QAT 6000 steps @0,55 BPW + ITQ** | **68,1** | ✅ **meilleur modèle** : 18 975 → 68,1 (**×279**) ; 292 Mo dont **81 Mo binaires** ; **69,9 tok/s** ; texte cohérent |
+| **QAT 19734 steps @0,55 BPW + ITQ (C4, 40,4 M tokens)** | **71,8** | 1 époque complète C4+WikiText-2 (aucune répétition) ; 292 Mo dont **81 Mo binaires** ; 72 tok/s ; texte répétitif |
+| **QAT 6000 steps @0,55 BPW + ITQ** | **68,1** | ✅ meilleur sur WikiText-2 : 18 975 → 68,1 (**×279**) ; 292 Mo dont **81 Mo binaires** ; **69,9 tok/s** ; texte cohérent |
 | QAT 3000 steps @0,55 BPW + ITQ | 77,9 | même budget que ci-dessous : **−29 %** grâce à l'ITQ |
 | QAT 3000 steps @0,55 BPW | 109,5 | 18 975 → 109,5 (×173) ; 292 Mo dont 81 Mo binaires ; 43 tok/s ; texte cohérent |
 | **QAT 3000 steps @0,3 BPW** (GPU) | **146,5** | 13 093 → 146,5 (**×89**) ; 254 Mo dont 42 Mo binaires ; 69 tok/s ; grammatical mais faux |
@@ -154,6 +155,29 @@ FP 14.62 → 1.0 BPW 20.33 → 0.55 BPW 23.35 → 0.3 BPW 28.30 → 0.1 BPW 53.7
 > **Modèle final** — OPT-1.3B @0,55 BPW + Joint-ITQ, 6000 steps (10 M tokens vus, 5 époques) :
 > `"The capital of France is"` → **`" the French capital of the Republic of France. The French capital is located in the city of Paris, in the north-west of the city."`**
 > (69,9 tok/s, 292 Mo sur disque dont 81 Mo de facteurs binaires, ≈26× moins de poids linéaires qu'en FP16.)
+
+### 5.2.3 C4 vs WikiText-2 : le classement s'inverse selon le domaine mesuré
+
+Deux modèles identiques (OPT-1.3B @0,55 BPW + ITQ, même init, même protocole), seule la **donnée
+d'entraînement** change. Évaluation croisée sur les deux domaines (140 chunks de 2048 tokens chacun,
+GPU) :
+
+| Entraînement | tokens vus | PPL WikiText-2 | PPL C4 |
+|---|---|---|---|
+| FP32 (référence) | — | **14,62** | **14,73** |
+| WikiText-2 train (5,06 époques) | 10 M (2 M uniques) | **68,1** | 187,2 |
+| C4 + WikiText-2 (1 époque) | 40,4 M (uniques) | 71,8 | **70,3** |
+
+Lecture :
+- Le modèle **WikiText-2** gagne sur le domaine qu'il a vu 5 fois (68,1) mais s'effondre hors domaine
+  (187,2 sur C4) — il a mémorisé le corpus.
+- Le modèle **C4** est **stable sur les deux domaines** (70,3 / 71,8) : il généralise. Sur C4 il est
+  **2,7× meilleur** que le modèle WikiText-2 (70,3 vs 187,2).
+- Conclusion méthodologique : la PPL WikiText-2 seule **récompense le sur-apprentissage du domaine**.
+  Pour juger un modèle réellement utilisable, il faut la moyenne des deux domaines — et là, C4
+  (≈71,0) bat WikiText-2 (≈127,7) d'un facteur 1,8.
+- Écart restant avec le papier (23,35) : 40,4 M tokens contre ~1 Md, soit 25× moins de données ;
+  les 3,0× de PPL restants sont cohérents avec cet écart.
 
 ### 5.2.2 Limite identifiée : passage de « compute-limited » à « data-limited »
 
